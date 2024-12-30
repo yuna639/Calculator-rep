@@ -1,0 +1,78 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
+
+# Generate a sample dataset for one year
+def generate_sample_data(start_date='2023-01-01', num_days=365):
+    np.random.seed(0)
+    dates = [datetime.strptime(start_date, '%Y-%m-%d') + timedelta(days=i) for i in range(num_days)]
+    staff_names = ['Alice', 'Bob', 'Charlie', 'David', 'Eve']
+    data = {
+        'Date': np.tile(dates, len(staff_names)),
+        'Staff': np.repeat(staff_names, num_days),
+        'Payment': np.random.randint(50, 300, size=len(staff_names) * num_days)
+    }
+    return pd.DataFrame(data)
+
+# Function to process the data
+def process_data(df):
+    df['Date'] = pd.to_datetime(df['Date'])
+    df['Day'] = df['Date'].dt.date
+    return df
+
+# Function to analyze the data
+def analyze_data(df):
+    daily_totals = df.groupby('Day')['Payment'].sum()
+    staff_totals = df.groupby('Staff')['Payment'].sum()
+    return daily_totals, staff_totals
+
+# Function to visualize the data
+def plot_data(daily_totals):
+    plt.figure(figsize=(10, 6))
+    daily_totals.plot(kind='line', color='skyblue')
+    plt.xlabel('Date')
+    plt.ylabel('Total Payment')
+    plt.title('Daily Total Payments')
+    plt.show()
+
+# Bot-like interaction function
+def bot_response(user_input, df, daily_totals, staff_totals):
+    user_input = user_input.lower()
+    
+    if 'total payment' in user_input:
+        total_payment = df['Payment'].sum()
+        return f"The total payment for the year is ${total_payment:.2f}."
+    elif 'daily total' in user_input:
+        return daily_totals.to_string()
+    elif 'staff total' in user_input:
+        return staff_totals.to_string()
+    elif 'plot daily' in user_input:
+        plot_data(daily_totals)
+        return "Here is the daily total payments plot."
+    else:
+        return "I can provide information on 'total payment', 'daily total', 'staff total', or 'plot daily'."
+
+# Main function to run the analysis and interactive bot
+def main():
+    # Generate and process data
+    df = generate_sample_data()
+    df = process_data(df)
+    
+    # Analyze the data
+    daily_totals, staff_totals = analyze_data(df)
+    
+    # Interactive bot loop
+    print("Welcome to the Business Payment Bot! Ask me questions about the dataset.")
+    print("Type 'exit' to quit.")
+    
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() == 'exit':
+            print("Goodbye!")
+            break
+        response = bot_response(user_input, df, daily_totals, staff_totals)
+        print("Bot:", response)
+
+if __name__ == "__main__":
+    main()
